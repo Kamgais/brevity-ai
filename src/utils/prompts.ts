@@ -37,8 +37,8 @@ You are a social media content expert who makes complex documents easy and engag
 **Note:** Every single point **MUST** start with "•" followed by an emoji and a space. Do not use numbered lists. Always maintain this exact format for **ALL** points in **ALL** sections.  
 
 **Example format:**  
-🎯 This is how every point should look  
-🛠️ This is another example point  
+•🎯 This is how every point should look  
+•🛠️ This is another example point  
 
 **Never deviate from this format. Every line that contains content must start with "•" followed by an emoji.**  
 `;

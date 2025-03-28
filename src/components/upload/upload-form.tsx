@@ -5,6 +5,7 @@ import { useUploadThing } from "@/utils/uploadthing";
 import { toast } from "sonner"
 import { generatePdfSummary, storePdfSummaryAction } from "@/actions/upload-actions";
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 
 const schema = z.object({
@@ -21,6 +22,7 @@ const schema = z.object({
 export default function UploadForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [isLoading, setLoading] = useState(false);
+  const router = useRouter();
     const { startUpload, routeConfig } = useUploadThing("pdfUploader", {
         onClientUploadComplete: () => {
           console.log("uploaded successfully!");
@@ -80,24 +82,32 @@ export default function UploadForm() {
         const  {data = null, message = null} = summary || {};
 
         if(data) {
+          let storeResult:any;
           toast.success('Saving PDF...',{
             description: 'Hang tight! We are saving your summary! 🔥'
           });
           formRef.current?.reset();
 
           if(data.summary) {
-            // await storePdfSummaryAction({
-            //   fileUrl: resp[0].ufsUrl,
-            //   summary: data.summary,
-            //   title: data.title,
+           storeResult = await storePdfSummaryAction({
+              fileUrl: resp[0].ufsUrl,
+              summary: data.summary,
+              title: data.title,
+              fileName: resp[0].name
 
-            // })
+            })
+
+             // summarize the pdf using AI
+          toast.success('🔥Summary Generated!',{
+            description: 'Your summary has been saved!🔥'
+          });
+          setLoading(false);
+          formRef.current?.reset();
+          router.push(`/summaries/${storeResult.data.id}`)
           }
         }
-        // summarize the pdf using AI
-
-        // save the summary to the database
-        // redirect to the [id] summary page
+       
+        //TODO: redirect to the [id] summary page
     }
   return (
     <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto">

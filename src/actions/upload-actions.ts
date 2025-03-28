@@ -4,11 +4,13 @@ import { getDbConnection } from "@/lib/db";
 import { generateSummaryFromGemini } from "@/lib/geminiai";
 import { fetchAndExtractPdfText } from "@/lib/langchain";
 import { generateSummaryFromOpenAI } from "@/lib/openai";
+import { formatFileNameAsTitle } from "@/utils/format-utils";
 import { auth } from "@clerk/nextjs/server";
 
 
+
 interface PdfSummaryType {
-    userId: string;
+    userId?: string;
     fileUrl: string;
     summary: string;
     title: string;
@@ -59,11 +61,14 @@ export async function generatePdfSummary(uploadResponse: any) {
             data: null
         }
      }
+     const fileName = uploadResponse[0].name
+     const formattedFileName  = formatFileNameAsTitle(fileName);
      return {
         success: true,
         message: 'Summary generated successfully',
         data: {
-            summary
+            summary,
+            title: formattedFileName
         }
      }
     } catch (error) {
@@ -86,14 +91,17 @@ async function savePdfSummary({userId, fileUrl, summary, title, fileName}: {
     // sql inserting 
     try {
         const sql = await getDbConnection();
-        await sql`INSERT INTO your_table_name (user_id, original_file_url, summary_text, title, file_name) 
-                    VALUES (
-                    ${userId},
-                    ${fileUrl},
-                    ${summary}
-                    ${title}
-                    ${fileName}
-                    );`
+        await sql`INSERT INTO pdf_summaries (user_id, original_file_url, summary_text, title, file_name) 
+                    VALUES (${userId},${fileUrl},${summary},${title},${fileName});`
+        
+            // Fetch the inserted row
+        const result = await sql`
+        SELECT * FROM pdf_summaries 
+        WHERE user_id = ${userId} 
+        ORDER BY created_at DESC 
+        LIMIT 1;
+    `;
+    return result[0];
     } catch (error) {
       console.log('Error saving PDF summary', error);
       throw error;  
@@ -133,15 +141,22 @@ export async function storePdfSummaryAction({
             }
         }
 
-        return {
-            success: true,
-            message: 'PDF summary saved successfully'
-        }
+      
         
     } catch (error) {
         return {
             success: false,
             message: error instanceof Error ? error.message : 'Error saving PDF summary'
+        }
+    }
+
+    // revalidaze our cache 
+//    revalidatePath(`/summaries/${savedPdfSummary.id}`)
+    return {
+        success: true,
+        message: 'PDF summary saved successfully',
+        data : {
+            id: savedPdfSummary.id
         }
     }
 }

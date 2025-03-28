@@ -37,7 +37,7 @@ export default function Footer() {
 
       {/* Copyright */}
       <div className="text-center text-sm text-gray-500 mt-6">
-        © {new Date().getFullYear()}Brevity. All rights reserved.
+        © {new Date().getFullYear()} Brevity. All rights reserved.
       </div>
    </footer>
   )
