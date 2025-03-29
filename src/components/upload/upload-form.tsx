@@ -33,7 +33,7 @@ export default function UploadForm() {
             description: error.message
           });
         },
-        onUploadBegin: ({ file }) => {
+        onUploadBegin: (file) => {
           console.log("upload has begun for", file);
         },
       });
